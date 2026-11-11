@@ -1,0 +1,23 @@
+name: geofence_kit_example
+description: >-
+  geofence_kit reference example — registers the reference geofence on app
+  boot and surfaces ENTER/EXIT/DWELL events through local notifications in
+  every app state (foreground, background, terminated) on Android and iOS.
+publish_to: "none"
+version: 1.0.0+0
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Path dependency: example/ lives inside the plugin package.
+  geofence_kit:
+    path: ../
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true

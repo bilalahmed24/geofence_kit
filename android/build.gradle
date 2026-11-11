@@ -1,0 +1,63 @@
+// geofence_kit — Android module (MAVEN-CENTRAL mode, v1.0.0).
+//
+// The plugin's native core is a PREBUILT AAR published to Maven Central
+// as io.github.bilalahmed24:geofence_kit-core. This module contributes
+// exactly one source file — the open-source channel glue
+// GeofenceKitPlugin.kt (Flutter's plugin tooling requires the entry class
+// named by pubspec.yaml to exist as source at a fixed path in the plugin)
+// — and links it against the binary core:
+//
+//   * api "io.github.bilalahmed24:geofence_kit-core:1.0.0" — resolved
+//     from mavenCentral() like any other dependency: no vendored binary
+//     inside the repository, nothing extra for host apps to configure.
+//     `api` (not `implementation`) because the glue's own signatures
+//     expose nothing from the AAR, but the module's compile and the host
+//     app's runtime classpath both need the engine classes.
+//   * api play-services-location — the AAR's POM already carries it;
+//     re-declared for robustness (identical coordinates, deduplicated).
+//   * HMS stays OPT-IN exactly as it has always been: host apps add
+//     com.huawei.hms:location themselves; the AAR's proguard.txt ships
+//     the R8 -dontwarn rules for the reflection probe (HMS absent =
+//     probe fails first, factory falls back to GMS → platform).
+
+plugins {
+    id "com.android.library"
+}
+
+group = "io.github.bilalahmed24"
+version = "1.0.0"
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+android {
+    namespace = "com.bilalahmed24.geofencekit"
+    compileSdk = 36
+
+    defaultConfig {
+        minSdk = 23
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    }
+}
+
+dependencies {
+    api "io.github.bilalahmed24:geofence_kit-core:1.0.0"
+    api "com.google.android.gms:play-services-location:21.4.0"
+}

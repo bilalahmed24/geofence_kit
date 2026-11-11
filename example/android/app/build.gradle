@@ -1,0 +1,48 @@
+plugins {
+    id "com.android.application"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "com.bilalahmed24.gfkab.example"
+    compileSdk = 36
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    defaultConfig {
+        applicationId = "com.bilalahmed24.gfkab.example"
+        minSdkVersion = flutter.minSdkVersion
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0.0"
+    }
+
+    buildTypes {
+        release {
+            // Release runs like debug (debug signing) — no release
+            // keystore needed to try the example.
+            signingConfig = signingConfigs.debug
+        }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+dependencies {
+    // OPTIONAL — HMS Core geofencing/location on Huawei devices without
+    // Google Play Services. The engine picks it up automatically via
+    // reflection when present (see android/engine/HmsLocationClientAdapter).
+    // Also uncomment the Huawei maven repo in android/build.gradle (root).
+    // implementation "com.huawei.hms:location:6.16.0.302"
+}

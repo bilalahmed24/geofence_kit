@@ -1,0 +1,313 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.4 effective-5.10 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)
+// swift-module-flags: -target arm64-apple-ios15.0-simulator -enable-objc-interop -enable-library-evolution -language-mode 5 -O -module-name geofence_kit
+// swift-module-flags-ignorable:  -formal-cxx-interoperability-mode=off -interface-compiler-version 6.4
+import BackgroundTasks
+import CoreLocation
+import CoreMotion
+import Flutter
+import Foundation
+import Swift
+import UIKit
+import UserNotifications
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+public protocol GFKOsTripwire : AnyObject {
+  func apply(fences: [geofence_kit::GFKFenceGeo], force: Swift::Bool)
+  var onRegistrationRound: ((_ setChanged: Swift::Bool, _ registeredCount: Swift::Int) -> Swift::Void)? { get set }
+  var monitoredRegionCount: Swift::Int? { get }
+  var lastRegistrationError: Swift::String? { get }
+  func engineRestorationDidComplete()
+}
+extension geofence_kit::GFKOsTripwire {
+  public func apply(fences: [geofence_kit::GFKFenceGeo])
+}
+public protocol GFKStationaryWakeCapable : AnyObject {
+  func applyStationaryWake(center: _LocationEssentials::CLLocationCoordinate2D?, radiusMeters: Swift::Double)
+  func clearStationaryWake()
+}
+public protocol GFKEngineEventListener : AnyObject {
+  func engine(_ engine: geofence_kit::GFKAdaptiveEngine, didEmit event: geofence_kit::GFKGeofenceEvent)
+  func engine(_ engine: geofence_kit::GFKAdaptiveEngine, heartbeatAt timestampMs: Swift::Int64)
+  func engine(_ engine: geofence_kit::GFKAdaptiveEngine, didError code: Swift::String, message: Swift::String)
+}
+@objc final public class GFKAdaptiveEngine : ObjectiveC::NSObject {
+  public static let shared: geofence_kit::GFKAdaptiveEngine
+  weak final public var tripwire: (any geofence_kit::GFKOsTripwire)?
+  weak final public var listener: (any geofence_kit::GFKEngineEventListener)?
+  final public var config: geofence_kit::EngineConfig {
+    get
+  }
+  final public var isRunning: Swift::Bool {
+    get
+  }
+  public init(config: geofence_kit::EngineConfig = EngineConfig())
+  final public func prewarmMotionAuthorization()
+  final public func start(fences: [geofence_kit::GFKFenceGeo])
+  final public func stop()
+  final public func addFence(_ fence: geofence_kit::GFKFenceGeo)
+  final public func removeFence(_ fenceId: Swift::String)
+  final public func onAppForeground()
+  final public func onAppBackground()
+  final public func onTerminate()
+  @discardableResult
+  final public func flushOutbox() -> Swift::Int
+  @discardableResult
+  final public func ackEvents(ids: [Swift::String]) -> Swift::Int
+  final public var restorationInFlight: Swift::Bool {
+    get
+  }
+  final public func ingestOsRegionEvent(fenceId: Swift::String, kind: Swift::String)
+  final public func reportDiagnostic(_ code: Swift::String, _ message: Swift::String)
+  final public func updateConfig(_ newConfig: geofence_kit::EngineConfig)
+  final public func engineStateSnapshot() -> [Swift::String : Any]
+  @objc public static func bootIfPersisted() -> Swift::Bool
+  final public func armTerminationFailsafe()
+  final public func externalWake(reason: Swift::String, completion: (() -> Swift::Void)? = nil)
+  @objc deinit
+}
+extension geofence_kit::GFKAdaptiveEngine : geofence_kit::GFKMotionGovernorDelegate {
+  final public func motionGovernor(_ governor: geofence_kit::GFKMotionGovernor, didChange motion: geofence_kit::GFKMotionState, at timestampMs: Swift::Int64)
+}
+public struct EngineConfig {
+  public var adaptiveEngine: Swift::Bool
+  public var proximityRadiusM: Swift::Int?
+  public var hysteresis: Swift::Double
+  public var accuracyGate: Swift::Bool
+  public var maxFixAccuracyM: Swift::Int?
+  public var confirmationFixes: Swift::Int?
+  public var loiteringDelayMs: Swift::Int
+  public var stopTimeoutSeconds: Swift::Int
+  public var heartbeatIntervalSeconds: Swift::Int
+  public var initialTriggerEnter: Swift::Bool
+  public var initialTriggerExit: Swift::Bool
+  public var slcFailsafe: Swift::Bool
+  public var emitHeartbeatEvents: Swift::Bool
+  public var motionDebounceMs: Swift::Int
+  public var evidenceDecayMs: Swift::Int
+  public var osConfirmTimeoutSeconds: Swift::Double
+  public var maxReconcileFixAgeMs: Swift::Int
+  public var maxMonitoredFences: Swift::Int?
+  public var fenceProximityRadiusM: Swift::Int?
+  public var evaluatorWakeupBurstMs: Swift::Int
+  public var useBackgroundActivitySession: Swift::Bool
+  public var stationaryWakeEnabled: Swift::Bool
+  public var stationaryWakeRadiusMeters: Swift::Double
+  public var backgroundFetchWake: Swift::Bool
+  public var backgroundFetchWakeMinutes: Swift::Int
+  public init(adaptiveEngine: Swift::Bool = true, proximityRadiusM: Swift::Int? = nil, hysteresis: Swift::Double = 0.15, accuracyGate: Swift::Bool = true, maxFixAccuracyM: Swift::Int? = nil, confirmationFixes: Swift::Int? = nil, loiteringDelayMs: Swift::Int = 0, stopTimeoutSeconds: Swift::Int = 180, heartbeatIntervalSeconds: Swift::Int = 300, initialTriggerEnter: Swift::Bool = true, initialTriggerExit: Swift::Bool = true, slcFailsafe: Swift::Bool = true, emitHeartbeatEvents: Swift::Bool = false, motionDebounceMs: Swift::Int = 10_000, evidenceDecayMs: Swift::Int = 180_000, osConfirmTimeoutSeconds: Swift::Double = 20.0, maxReconcileFixAgeMs: Swift::Int = 300_000, maxMonitoredFences: Swift::Int? = nil, fenceProximityRadiusM: Swift::Int? = nil, evaluatorWakeupBurstMs: Swift::Int = 45_000, useBackgroundActivitySession: Swift::Bool = false, stationaryWakeEnabled: Swift::Bool = true, stationaryWakeRadiusMeters: Swift::Double = 150, backgroundFetchWake: Swift::Bool = true, backgroundFetchWakeMinutes: Swift::Int = 15)
+  public func enterRadius(forFenceRadius r: Swift::Double) -> Swift::Double
+  public func exitRadius(forFenceRadius r: Swift::Double) -> Swift::Double
+  public func edgeRadius(forFenceRadius r: Swift::Double) -> Swift::Double
+  public func proximityMargin(forFenceRadius r: Swift::Double) -> Swift::Double
+  public func proximityRadius(forFenceRadius r: Swift::Double) -> Swift::Double
+  public func accuracyGateMeters(forFenceRadius r: Swift::Double) -> Swift::Double
+  public func confirmationFixes(forFenceRadius r: Swift::Double) -> Swift::Int
+  public var fastExitSpeedMps: Swift::Double {
+    get
+  }
+  public var presetRefreshSeconds: Swift::Int {
+    get
+  }
+  public func effectiveMaxMonitored(platformCap: Swift::Int = 20) -> Swift::Int
+  public func effectiveFenceProximityRadius() -> Swift::Double
+  public func isExitEvidence(_ distanceMeters: Swift::Double, accuracyMeters: Swift::Double, exitRadius: Swift::Double) -> Swift::Bool
+  public static func fromDictionary(_ d: [Swift::String : Any]) -> geofence_kit::EngineConfig
+  public func toDictionary() -> [Swift::String : Any]
+  public func configHash() -> Swift::String
+}
+public enum GFKMotionState : Swift::String {
+  case still
+  case foot
+  case vehicle
+  case unknown
+  public var isMoving: Swift::Bool {
+    get
+  }
+  public init?(rawValue: Swift::String)
+  public typealias RawValue = Swift::String
+  public var rawValue: Swift::String {
+    get
+  }
+}
+public enum GFKProximityTier : Swift::Int, Swift::Comparable {
+  case far
+  case near
+  case edge
+  public static func < (lhs: geofence_kit::GFKProximityTier, rhs: geofence_kit::GFKProximityTier) -> Swift::Bool
+  public var wireName: Swift::String {
+    get
+  }
+  public init?(rawValue: Swift::Int)
+  public typealias RawValue = Swift::Int
+  public var rawValue: Swift::Int {
+    get
+  }
+}
+public enum GFKLocationPreset : Swift::String {
+  case off
+  case scout
+  case drift
+  case approach
+  case lockon
+  public var requiresStandardUpdates: Swift::Bool {
+    get
+  }
+  public init?(rawValue: Swift::String)
+  public typealias RawValue = Swift::String
+  public var rawValue: Swift::String {
+    get
+  }
+}
+public enum GFKFenceState : Swift::String {
+  case outside
+  case entering
+  case inside
+  case exiting
+  public init?(rawValue: Swift::String)
+  public typealias RawValue = Swift::String
+  public var rawValue: Swift::String {
+    get
+  }
+}
+public enum GFKEventSource : Swift::String {
+  case fix
+  case osRegion
+  case heartbeat
+  case reconcile
+  case boot
+  public init?(rawValue: Swift::String)
+  public typealias RawValue = Swift::String
+  public var rawValue: Swift::String {
+    get
+  }
+}
+public enum GFKEngineErrorCode : Swift::String {
+  case locationDenied
+  case locationServicesOff
+  case invalidFence
+  case notRunning
+  case storage
+  case osConfirmTimeout
+  case osConfirmCancelled
+  case osConfirmStale
+  case internalError
+  public init?(rawValue: Swift::String)
+  public typealias RawValue = Swift::String
+  public var rawValue: Swift::String {
+    get
+  }
+}
+public struct GFKFenceGeo {
+  public let id: Swift::String
+  public let latitude: Swift::Double
+  public let longitude: Swift::Double
+  public let radiusMeters: Swift::Double
+  public let vertices: [[Swift::Double]]
+  public let notifyOnEnter: Swift::Bool
+  public let notifyOnExit: Swift::Bool
+  public let notifyOnDwell: Swift::Bool
+  public let extras: [Swift::String : Any]?
+  public init(id: Swift::String, latitude: Swift::Double, longitude: Swift::Double, radiusMeters: Swift::Double)
+  public init(id: Swift::String, latitude: Swift::Double, longitude: Swift::Double, radiusMeters: Swift::Double, vertices: [[Swift::Double]], notifyOnEnter: Swift::Bool = true, notifyOnExit: Swift::Bool = true, notifyOnDwell: Swift::Bool = true, extras: [Swift::String : Any]? = nil)
+  public var isPolygon: Swift::Bool {
+    get
+  }
+  public var isEvaluatorOwned: Swift::Bool {
+    get
+  }
+  public var isValid: Swift::Bool {
+    get
+  }
+  public static let osMinResolvableRadiusMeters: Swift::Double
+}
+public struct GFKFix {
+  public let latitude: Swift::Double
+  public let longitude: Swift::Double
+  public let accuracyMeters: Swift::Double
+  public let speedMps: Swift::Double
+  public let bearingDeg: Swift::Double
+  public let timestampMs: Swift::Int64
+  public let source: Swift::String
+  public init(latitude: Swift::Double, longitude: Swift::Double, accuracyMeters: Swift::Double, speedMps: Swift::Double, bearingDeg: Swift::Double, timestampMs: Swift::Int64, source: Swift::String)
+  public func ageMs(nowMs: Swift::Int64) -> Swift::Int64
+}
+public struct GFKGeofenceEvent {
+  public let id: Swift::String
+  public let fenceId: Swift::String
+  public let transition: Swift::String
+  public let timestampMs: Swift::Int64
+  public let latitude: Swift::Double
+  public let longitude: Swift::Double
+  public let accuracy: Swift::Double
+  public let speed: Swift::Double
+  public let bearing: Swift::Double
+  public let source: geofence_kit::GFKEventSource
+  public let distanceToCenterMeters: Swift::Double
+  public let tier: geofence_kit::GFKProximityTier
+  public let motion: geofence_kit::GFKMotionState
+  public let confidence: Swift::Double
+  public let extras: [Swift::String : Any]?
+  public let gen: Swift::Int
+  public let replayed: Swift::Bool
+  public let payloadDegraded: Swift::Bool
+  public init(id: Swift::String, fenceId: Swift::String, transition: Swift::String, timestampMs: Swift::Int64, latitude: Swift::Double, longitude: Swift::Double, accuracy: Swift::Double, speed: Swift::Double, bearing: Swift::Double, source: geofence_kit::GFKEventSource, distanceToCenterMeters: Swift::Double, tier: geofence_kit::GFKProximityTier, motion: geofence_kit::GFKMotionState, confidence: Swift::Double)
+  public init(id: Swift::String, fenceId: Swift::String, transition: Swift::String, timestampMs: Swift::Int64, latitude: Swift::Double, longitude: Swift::Double, accuracy: Swift::Double, speed: Swift::Double, bearing: Swift::Double, source: geofence_kit::GFKEventSource, distanceToCenterMeters: Swift::Double, tier: geofence_kit::GFKProximityTier, motion: geofence_kit::GFKMotionState, confidence: Swift::Double, extras: [Swift::String : Any]?)
+  public init(id: Swift::String, fenceId: Swift::String, transition: Swift::String, timestampMs: Swift::Int64, latitude: Swift::Double, longitude: Swift::Double, accuracy: Swift::Double, speed: Swift::Double, bearing: Swift::Double, source: geofence_kit::GFKEventSource, distanceToCenterMeters: Swift::Double, tier: geofence_kit::GFKProximityTier, motion: geofence_kit::GFKMotionState, confidence: Swift::Double, extras: [Swift::String : Any]?, gen: Swift::Int = 0, replayed: Swift::Bool = false, payloadDegraded: Swift::Bool = false)
+  public func toDictionary() -> [Swift::String : Any]
+  public func asReplayed() -> geofence_kit::GFKGeofenceEvent
+}
+@_inheritsConvenienceInitializers @objc(GeofenceKitPlugin) public class GeofenceKitPlugin : ObjectiveC::NSObject, Flutter::FlutterPlugin, Flutter::FlutterStreamHandler, geofence_kit::GFKEngineEventListener {
+  @objc public static func register(with registrar: any Flutter::FlutterPluginRegistrar)
+  @objc public static func earlyBootstrap()
+  @objc public func handle(_ call: Flutter::FlutterMethodCall, result: @escaping Flutter::FlutterResult)
+  @objc public func onListen(withArguments arguments: Any?, eventSink events: @escaping Flutter::FlutterEventSink) -> Flutter::FlutterError?
+  @objc public func onCancel(withArguments arguments: Any?) -> Flutter::FlutterError?
+  public func engine(_ engine: geofence_kit::GFKAdaptiveEngine, didEmit event: geofence_kit::GFKGeofenceEvent)
+  public func engine(_ engine: geofence_kit::GFKAdaptiveEngine, heartbeatAt timestampMs: Swift::Int64)
+  public func engine(_ engine: geofence_kit::GFKAdaptiveEngine, didError code: Swift::String, message: Swift::String)
+  @objc override dynamic public init()
+  @objc deinit
+}
+public protocol GFKMotionGovernorDelegate : AnyObject {
+  func motionGovernor(_ governor: geofence_kit::GFKMotionGovernor, didChange motion: geofence_kit::GFKMotionState, at timestampMs: Swift::Int64)
+}
+@_hasMissingDesignatedInitializers final public class GFKMotionGovernor {
+  final public let debounceMs: Swift::Int
+  final public let stopTimeoutSeconds: Swift::Int
+  weak final public var delegate: (any geofence_kit::GFKMotionGovernorDelegate)?
+  final public var currentMotion: geofence_kit::GFKMotionState {
+    get
+  }
+  final public var stillSinceMs: Swift::Int64? {
+    get
+  }
+  final public func isStillLatchSatisfied(nowMs: Swift::Int64) -> Swift::Bool
+  final public var motionUnavailable: Swift::Bool {
+    get
+  }
+  final public var motionSource: Swift::String {
+    get
+  }
+  @objc deinit
+  final public func start()
+  final public func stop()
+}
+extension geofence_kit::GFKMotionState : Swift::Equatable {}
+extension geofence_kit::GFKMotionState : Swift::Hashable {}
+extension geofence_kit::GFKMotionState : Swift::RawRepresentable {}
+extension geofence_kit::GFKProximityTier : Swift::Hashable {}
+extension geofence_kit::GFKProximityTier : Swift::RawRepresentable {}
+extension geofence_kit::GFKLocationPreset : Swift::Equatable {}
+extension geofence_kit::GFKLocationPreset : Swift::Hashable {}
+extension geofence_kit::GFKLocationPreset : Swift::RawRepresentable {}
+extension geofence_kit::GFKFenceState : Swift::Equatable {}
+extension geofence_kit::GFKFenceState : Swift::Hashable {}
+extension geofence_kit::GFKFenceState : Swift::RawRepresentable {}
+extension geofence_kit::GFKEventSource : Swift::Equatable {}
+extension geofence_kit::GFKEventSource : Swift::Hashable {}
+extension geofence_kit::GFKEventSource : Swift::RawRepresentable {}
+extension geofence_kit::GFKEngineErrorCode : Swift::Equatable {}
+extension geofence_kit::GFKEngineErrorCode : Swift::Hashable {}
+extension geofence_kit::GFKEngineErrorCode : Swift::RawRepresentable {}

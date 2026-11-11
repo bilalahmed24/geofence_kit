@@ -1,0 +1,23 @@
+name: geofence_kit
+description: >-
+  Motion-aware hybrid geofence engine — accurate ENTER/EXIT/DWELL in every
+  app state (foreground, background, terminated) with minimal configuration.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.geofencekit.core.plugin
+        pluginClass: GeofenceKitPlugin
+      ios:
+        pluginClass: GeofenceKitPlugin

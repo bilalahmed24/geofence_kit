@@ -1,0 +1,21 @@
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        // OPTIONAL — HMS Core (Huawei devices without Google Play Services).
+        // Uncomment when you enable the HMS dependency in app/build.gradle.
+        // maven { url 'https://developer.huawei.com/repo/' }
+    }
+}
+
+rootProject.buildDir = "../build"
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}

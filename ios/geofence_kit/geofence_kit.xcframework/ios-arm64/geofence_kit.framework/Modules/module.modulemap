@@ -1,0 +1,5 @@
+framework module geofence_kit {
+    umbrella header "geofence_kit.h"
+    export *
+    module * { export * }
+}

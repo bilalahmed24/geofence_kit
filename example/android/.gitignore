@@ -1,0 +1,13 @@
+gradle-wrapper.jar
+/.gradle
+/captures
+/gradlew
+/gradlew.bat
+/local.properties
+GeneratedPluginRegistrant.java
+
+# Remember to never publicly share your android key properties.
+# See https://flutter.dev/to/reference-keystore
+key.properties
+**/key.properties
+**/AndroidManifest.xml merger.xml
