@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+Changed license to MPL 2.0
+
 ## 1.0.0
 
 First release.
