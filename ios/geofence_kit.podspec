@@ -11,8 +11,8 @@ Pod::Spec.new do |s|
   framework travels inside the package, CocoaPods merely links it.
                        DESC
   s.homepage         = 'https://github.com/bilalahmed24/geofence_kit'
-  s.license          = { :type => 'CC BY-ND 4.0' }
-  s.author           = { 'Bilal Uddin Ahmed' => 'https://github.com/bilalahmed24' }
+  s.license          = { :file => '../LICENSE' }
+  s.author           = { 'Bilal Ahmed' => 'bilalahmed24.dev@gmail.com' }
   s.source           = { :path => '.' }
   s.vendored_frameworks = 'geofence_kit/geofence_kit.xcframework'
   s.dependency 'Flutter'

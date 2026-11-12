@@ -3,7 +3,10 @@ description: >-
   Motion-aware hybrid geofence engine — accurate ENTER/EXIT/DWELL in every
   app state (foreground, background, terminated) with minimal configuration.
 version: 1.0.0
-publish_to: none
+homepage: https://github.com/bilalahmed24/geofence_kit
+repository: https://github.com/bilalahmed24/geofence_kit
+issue_tracker: https://github.com/bilalahmed24/geofence_kit/issues
+topics: [ geofencing, location, background-location, geolocation, gps ]
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
