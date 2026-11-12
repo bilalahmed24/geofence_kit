@@ -1,4 +1,4 @@
-# geofence_kit
+# Geofence Kit
 
 **Motion-aware hybrid geofence engine for Flutter** — accurate `ENTER` /
 `EXIT` / `DWELL` transitions in every app state (foreground, background,

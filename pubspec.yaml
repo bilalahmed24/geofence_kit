@@ -2,7 +2,7 @@ name: geofence_kit
 description: >-
   Motion-aware hybrid geofence engine — accurate ENTER/EXIT/DWELL in every
   app state (foreground, background, terminated) with minimal configuration.
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/bilalahmed24/geofence_kit
 repository: https://github.com/bilalahmed24/geofence_kit
 issue_tracker: https://github.com/bilalahmed24/geofence_kit/issues
