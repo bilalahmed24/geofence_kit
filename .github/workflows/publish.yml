@@ -1,0 +1,73 @@
+# Automated publishing to pub.dev via GitHub Actions OIDC ("trusted
+# publishing"). No long-lived secrets are involved: pub.dev verifies a
+# short-lived OIDC token minted by GitHub for this exact workflow run.
+
+name: publish
+
+on:
+  push:
+    tags:
+      # Must align with the tag pattern configured on pub.dev: 'v{{version}}'.
+      # The trailing * also admits prerelease tags such as v1.2.3-rc.1 (as
+      # long as the pubspec version is the same 1.2.3-rc.1).
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+# OIDC automated publishing:
+#   id-token: write  — lets the job mint the GitHub-signed OIDC token
+#                      that dart-lang/setup-dart registers with pub.
+#   contents: read   — checkout only; nothing else is needed or wanted.
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    name: Publish tag ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    environment: pub-dev
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      # Gate 1: the pushed tag must match the pubspec version.
+      # Gate 2: the CHANGELOG must document exactly that version
+      #         (keep-a-changelog `## [x.y.z] — ...` heading).
+      - name: Verify tag/version and CHANGELOG entry
+        run: |
+          VERSION="$(grep '^version:' pubspec.yaml | awk '{print $2}')"
+          echo "pubspec version: ${VERSION}"
+
+          if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
+            if [[ "${GITHUB_REF_NAME}" != "v${VERSION}" ]]; then
+              echo "::error::Tag ${GITHUB_REF_NAME} does not match pubspec version ${VERSION}"
+              exit 1
+            fi
+          fi
+
+          if ! grep -q "^## \[${VERSION}\]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no '## [${VERSION}]' entry"
+            exit 1
+          fi
+
+      - name: Publish dry run (validates the package before uploading)
+        run: dart pub publish --dry-run
+
+      # Mints the GitHub-signed OIDC token (audience https://pub.dev),
+      # exports it as PUB_TOKEN, and registers it with pub for the
+      # https://pub.dev host — this is what makes publishing secretless.
+      # Runs after flutter-action so subsequent `dart` calls resolve to
+      # this Dart SDK; its `dart pub` finds the Flutter SDK through the
+      # FLUTTER_ROOT exported above.
+      - uses: dart-lang/setup-dart@v1
+
+      - name: Publish to pub.dev
+        run: dart pub publish --force
