@@ -175,8 +175,3 @@ await GeofenceKit.instance.enableHeadlessTask(onGeofenceEvent);
 A complete runnable app lives in `example/` — an event log with
 lifecycle badges, a live engine snapshot panel, and a field verification
 protocol for every app state.
-
-## License
-
-Creative Commons Attribution-NoDerivatives 4.0 International —
-<https://creativecommons.org/licenses/by-nd/4.0>
