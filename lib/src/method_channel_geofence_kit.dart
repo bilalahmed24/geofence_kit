@@ -64,7 +64,10 @@ import 'adaptive_config.dart';
 @pragma('vm:entry-point')
 void gfkHeadlessBootstrap() {
   WidgetsFlutterBinding.ensureInitialized();
-  MethodChannelGeofenceKit.runHeadlessTask();
+  // Fire-and-forget by design — the drain owns its own teardown and the
+  // bootstrap must return immediately; the explicit unawaited keeps
+  // discarded_futures satisfied without changing behavior.
+  unawaited(MethodChannelGeofenceKit.runHeadlessTask());
 }
 
 /// The production [api.GeofenceKit] implementation.
@@ -133,7 +136,8 @@ class MethodChannelGeofenceKit extends api.GeofenceKit {
       // in effect — without it the engine is foreground-only (no events
       // while backgrounded/terminated). A missing key (platforms without
       // the concept) → true.
-      backgroundLocationGranted: map['backgroundLocationGranted'] as bool? ?? true,
+      backgroundLocationGranted:
+          map['backgroundLocationGranted'] as bool? ?? true,
     );
   }
 
@@ -143,27 +147,28 @@ class MethodChannelGeofenceKit extends api.GeofenceKit {
     return _onEvent ??= _events
         .receiveBroadcastStream()
         .asyncMap<Object?>((Object? raw) async {
-      final event = GeofenceEvent.fromMap(
-        Map<Object?, Object?>.from(raw as Map),
-      );
-      if (event.id.isEmpty) {
-        // Legacy rows without a stable id cannot be deduped or acked —
-        // deliver as-is.
-        return event;
-      }
-      if (_seenEventIds.contains(event.id)) {
-        // Duplicate replay of an already-delivered event — re-ack
-        // (cheap) and suppress: the application callback sees it once.
-        await _ack(event.id);
-        return null;
-      }
-      _rememberSeen(event.id);
-      // The application's stream consumer has now received the event —
-      // this IS the acknowledgement boundary: a native outbox row
-      // is deleted only after its event reached the Dart subscription.
-      await _ack(event.id);
-      return event;
-    }).where((Object? e) => e is api.GeofenceEvent)
+          final event = GeofenceEvent.fromMap(
+            Map<Object?, Object?>.from(raw as Map),
+          );
+          if (event.id.isEmpty) {
+            // Legacy rows without a stable id cannot be deduped or acked —
+            // deliver as-is.
+            return event;
+          }
+          if (_seenEventIds.contains(event.id)) {
+            // Duplicate replay of an already-delivered event — re-ack
+            // (cheap) and suppress: the application callback sees it once.
+            await _ack(event.id);
+            return null;
+          }
+          _rememberSeen(event.id);
+          // The application's stream consumer has now received the event —
+          // this IS the acknowledgement boundary: a native outbox row
+          // is deleted only after its event reached the Dart subscription.
+          await _ack(event.id);
+          return event;
+        })
+        .where((Object? e) => e is api.GeofenceEvent)
         .cast<api.GeofenceEvent>();
   }
 
@@ -172,8 +177,8 @@ class MethodChannelGeofenceKit extends api.GeofenceKit {
 
   @override
   Future<Map<String, Object?>> permissionStatus() async {
-    final raw = await _methods
-        .invokeMethod<Map<dynamic, dynamic>>('permissionStatus');
+    final raw =
+        await _methods.invokeMethod<Map<dynamic, dynamic>>('permissionStatus');
     return Map<String, Object?>.from(raw ?? const <Object?, Object?>{});
   }
 
@@ -190,8 +195,8 @@ class MethodChannelGeofenceKit extends api.GeofenceKit {
 
   @override
   Future<Map<String, Object?>> engineStateSnapshot() async {
-    final raw =
-        await _methods.invokeMethod<Map<dynamic, dynamic>>('engineStateSnapshot');
+    final raw = await _methods
+        .invokeMethod<Map<dynamic, dynamic>>('engineStateSnapshot');
     return Map<String, Object?>.from(raw ?? const <Object?, Object?>{});
   }
 
@@ -208,7 +213,8 @@ class MethodChannelGeofenceKit extends api.GeofenceKit {
   /// durable outbox (next-launch replay) — nothing is ever lost.
   @override
   Future<void> enableHeadlessTask(api.GeofenceHeadlessTask task) async {
-    final bootstrapHandle = PluginUtilities.getCallbackHandle(gfkHeadlessBootstrap);
+    final bootstrapHandle =
+        PluginUtilities.getCallbackHandle(gfkHeadlessBootstrap);
     if (bootstrapHandle == null) {
       throw StateError(
         'enableHeadlessTask: the internal headless bootstrap could not be '
@@ -224,13 +230,12 @@ class MethodChannelGeofenceKit extends api.GeofenceKit {
       );
     }
     try {
-      final raw = await _methods
-          .invokeMethod<Map<dynamic, dynamic>>('enableHeadlessTask', <String, Object?>{
+      final raw = await _methods.invokeMethod<Map<dynamic, dynamic>>(
+          'enableHeadlessTask', <String, Object?>{
         'bootstrapHandle': bootstrapHandle.toRawHandle(),
         'userHandle': userHandle.toRawHandle(),
       });
-      final supported =
-          raw is Map && raw['supported'] != false;
+      final supported = raw is Map && raw['supported'] != false;
       if (!supported) {
         // iOS (and any platform without the mechanism): terminated-state
         // events relaunch the app / replay from the outbox onto onEvent —
@@ -275,8 +280,7 @@ class MethodChannelGeofenceKit extends api.GeofenceKit {
     // dart:ui's API is getCallbackFromHandle (the earlier
     // getCachedCallbackFromHandle name no longer exists on current
     // stable — the analyzer reports undefined_method against it).
-    final Function? taskFn =
-        PluginUtilities.getCallbackFromHandle(
+    final Function? taskFn = PluginUtilities.getCallbackFromHandle(
       CallbackHandle.fromRawHandle(userRaw),
     );
     if (taskFn == null) {

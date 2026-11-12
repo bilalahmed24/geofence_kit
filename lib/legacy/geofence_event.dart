@@ -35,6 +35,8 @@ class LegacyGeofenceEvent {
   /// Event location longitude in degrees (-1 when the OS supplied none).
   final double longitude;
 
+  /// Creates a minimal event — normally parsed via [fromWire] off the
+  /// platform wire map rather than constructed by hand.
   const LegacyGeofenceEvent({
     required this.fenceId,
     required this.transition,
@@ -43,7 +45,10 @@ class LegacyGeofenceEvent {
     required this.longitude,
   });
 
+  /// `true` when [transition] is `"ENTER"`.
   bool get isEnter => transition == 'ENTER';
+
+  /// `true` when [transition] is `"EXIT"`.
   bool get isExit => transition == 'EXIT';
 
   /// Tolerant parser for the platform wire map — reads ONLY the five
@@ -59,6 +64,7 @@ class LegacyGeofenceEvent {
     );
   }
 
+  /// The five core fields as a plain map (round-trips [fromWire]).
   Map<String, Object?> toMap() => <String, Object?>{
         'fenceId': fenceId,
         'transition': transition,

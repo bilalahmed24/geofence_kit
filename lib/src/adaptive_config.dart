@@ -67,6 +67,10 @@ class AdaptiveEngineConfig {
   /// NOT surfaced on the public event stream. Default `false`.
   final bool emitHeartbeatEvents;
 
+  /// Creates a config — every field has the documented default; the
+  /// public facade pins all of them (see `GeofenceKit.tunedAdaptiveMap`)
+  /// except [loiteringDelayMs], which carries the `start(dwell:)`
+  /// duration.
   const AdaptiveEngineConfig({
     this.adaptiveEngine = true,
     this.proximityRadiusM,
@@ -153,15 +157,29 @@ class AdaptiveEngineConfig {
 
 /// Provenance of a geofence event.
 enum GeofenceEventSource {
+  /// Committed by the engine's own fix-stream evaluation.
   fix('fix'),
+
+  /// Committed by the OS geofence tripwire (region monitoring).
   osRegion('os-region'),
+
+  /// Synthesized by the periodic heartbeat (liveness, not a transition).
   heartbeat('heartbeat'),
+
+  /// Synthesized by start/relaunch reconciliation (missed transitions).
   reconcile('reconcile'),
+
+  /// Synthesized by the boot receiver after a device reboot.
   boot('boot');
 
+  /// Const constructor — carries the [wireName].
   const GeofenceEventSource(this.wireName);
+
+  /// The stable cross-platform wire string for this source.
   final String wireName;
 
+  /// Tolerant parser — an unknown or missing wire resolves to
+  /// [GeofenceEventSource.fix].
   static GeofenceEventSource fromWire(String? wire) =>
       GeofenceEventSource.values.firstWhere(
         (s) => s.wireName == wire,
@@ -177,7 +195,11 @@ enum GeofenceEventSource {
 /// ([LegacyGeofenceEvent]). Consumers can keep reading `transition` /
 /// `fenceId` / `timestamp` unchanged across both shapes.
 class GeofenceEvent {
+  /// Stable event id — the dedup + acknowledgement key (empty for
+  /// legacy rows, which are delivered as-is).
   final String id;
+
+  /// Id of the fence that fired.
   final String fenceId;
 
   /// "ENTER", "EXIT" or "DWELL".
@@ -186,12 +208,20 @@ class GeofenceEvent {
   /// Wall-clock ms since the Unix epoch.
   final int timestampMs;
 
+  /// Event location latitude in degrees (-1 when the OS supplied none).
   final double latitude;
+
+  /// Event location longitude in degrees (-1 when the OS supplied none).
   final double longitude;
 
   /// Fix accuracy in meters (-1 when unavailable).
   final double accuracy;
+
+  /// Event location speed in meters per second (-1 when unavailable).
   final double speed;
+
+  /// Event location bearing in degrees, 0 = due north (-1 when
+  /// unavailable).
   final double bearing;
 
   /// Provenance of the commit.
@@ -232,6 +262,8 @@ class GeofenceEvent {
   /// without `Geofence.extras`).
   final Map<String, Object?>? extras;
 
+  /// Creates an enriched event — normally parsed via [fromMap] off the
+  /// event channel rather than constructed by hand.
   const GeofenceEvent({
     required this.id,
     required this.fenceId,
@@ -253,10 +285,17 @@ class GeofenceEvent {
     this.extras,
   });
 
+  /// `true` when [transition] is `"ENTER"`.
   bool get isEnter => transition == 'ENTER';
+
+  /// `true` when [transition] is `"EXIT"`.
   bool get isExit => transition == 'EXIT';
+
+  /// `true` when [transition] is `"DWELL"`.
   bool get isDwell => transition == 'DWELL';
 
+  /// Tolerant parser for the event-channel payload — missing keys fall
+  /// back to inert defaults, and enrichment keys are additive.
   static GeofenceEvent fromMap(Map<Object?, Object?> map) {
     double d(String key, [double fallback = -1]) =>
         (map[key] as num?)?.toDouble() ?? fallback;
@@ -282,6 +321,8 @@ class GeofenceEvent {
     );
   }
 
+  /// Wire map (round-trips [fromMap]; `gen` carries
+  /// [registrationGeneration]).
   Map<String, Object?> toMap() => <String, Object?>{
         'id': id,
         'fenceId': fenceId,

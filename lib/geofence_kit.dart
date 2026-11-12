@@ -89,6 +89,10 @@ class Geofence {
   /// Arbitrary metadata carried onto every event for this fence.
   final Map<String, Object?>? extras;
 
+  /// Creates a fence — see the class docs for the circle / polygon
+  /// shapes and per-field guidance; [isValid] reports structural
+  /// problems and [effectiveRadiusMeters] the radius the engine will
+  /// run with.
   const Geofence({
     required this.id,
     required this.latitude,
@@ -107,14 +111,19 @@ class Geofence {
   /// Structural validity (mirrors the native engines' check).
   bool get isValid {
     if (id.isEmpty || id.length > 256) return false;
-    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+    if (latitude < -90 ||
+        latitude > 90 ||
+        longitude < -180 ||
+        longitude > 180) {
       return false;
     }
     if (isPolygon) {
       return vertices!.every((v) =>
           v.length >= 2 &&
-          v[0] >= -90 && v[0] <= 90 &&
-          v[1] >= -180 && v[1] <= 180);
+          v[0] >= -90 &&
+          v[0] <= 90 &&
+          v[1] >= -180 &&
+          v[1] <= 180);
     }
     final r = radiusMeters;
     return r != null && r > 0 && r <= 100000;
@@ -135,6 +144,9 @@ class Geofence {
     return maxDistance <= 0 ? -1 : maxDistance;
   }
 
+  /// Wire map for the method channel: identity, position, the resolved
+  /// radius (present only when resolvable), polygon [vertices] when set,
+  /// only the non-default notify flags, and [extras] when supplied.
   Map<String, Object?> toMap() {
     final r = effectiveRadiusMeters;
     return <String, Object?>{
@@ -162,8 +174,8 @@ double _haversineMeters(double lat1, double lng1, double lat2, double lng2) {
   final dLambda = (lng2 - lng1) * degToRad;
   final sinPhi = math.sin(dPhi / 2);
   final sinLambda = math.sin(dLambda / 2);
-  final a = sinPhi * sinPhi +
-      math.cos(phi1) * math.cos(phi2) * sinLambda * sinLambda;
+  final a =
+      sinPhi * sinPhi + math.cos(phi1) * math.cos(phi2) * sinLambda * sinLambda;
   final c = 2 * math.atan2(math.sqrt(a), math.sqrt(math.max(0.0, 1.0 - a)));
   return radius * c;
 }
@@ -196,6 +208,8 @@ class StartResult {
   /// platform does not report it.
   final bool backgroundLocationGranted;
 
+  /// Creates a start outcome — normally produced by
+  /// `GeofenceKit.start`, not constructed by hand.
   const StartResult({
     required this.started,
     required this.fencesRegistered,
@@ -240,7 +254,7 @@ abstract class GeofenceKit {
   /// `null` (default) disables DWELL. Dwell survives process death.
   ///
   /// [showDebugNotification] (default `false`): the plugin's ONLY
-  /// notification surface — a native `"<app name> · ENTER · <fenceId>"
+  /// notification surface — a native `"app name · ENTER · fenceId"
   /// / "captured NATIVELY (app …)" debug note posted the moment the engine
   /// commits a transition, in EVERY app state (foreground, background,
   /// terminated). It exists so the delivery chain can be verified in the

@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.2]
+
+Made linter happy.
+
 ## [1.0.1]
 
 Changed license to MPL 2.0
